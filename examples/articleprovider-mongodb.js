@@ -5,17 +5,18 @@ var BSON = require('mongodb').BSON;
 var ObjectID = require('mongodb').ObjectID;
 
 ArticleProvider = function(host, port) {
-  this.db= new Db('node-my-mirror', new Server(host, port, {auto_reconnect: true}, {}));
+  this.db= new Db('communityMirror', new Server(host, port, {auto_reconnect: true}, {}));
   this.db.open(function(){});
 };
 
-ArticleProvider.prototype.addCommentToArticle = function(articleId, comment, callback) {
+ArticleProvider.prototype.addQuestionToUser = function(facebookId, question, callback) {
   this.getCollection(function(error, article_collection) {
     if( error ) callback( error );
     else {
+	console.log("inside update");
       article_collection.update(
-        {_id: article_collection.db.bson_serializer.ObjectID.createFromHexString(articleId)},
-        {"$push": {comments: comment}},
+        {fid: facebookId},
+        {"$push": {qs: question}},
         function(error, article){
           if( error ) callback(error);
           else callback(null, article)
@@ -52,18 +53,27 @@ ArticleProvider.prototype.findById = function(id, callback) {
     this.getCollection(function(error, article_collection) {
       if( error ) callback(error)
       else {
-        article_collection.findOne({_id: article_collection.db.bson_serializer.ObjectID.createFromHexString(id)}, function(error, result) {
+        article_collection.findOne({fid: id}, function(error, result) {
           if( error ) callback(error)
           else callback(null, result)
         });
+	
       }
     });
 };
-
-//save
-ArticleProvider.prototype.save = function(articles, callback) {
+ArticleProvider.prototype.remove = function(callback) {
+    this.getCollection(function(error, article_collection) {
+      if( error ) callback(error)
+      else {
+	console.log("inside remove");
+        article_collection.remove({});
+        }
 	
-    
+     });
+};
+//save
+ArticleProvider.prototype.save = function(articles, callback) {	
+    console.log("Inside Save");
     this.getCollection(function(error, article_collection) {
       if( error ) callback(error)
       else {
@@ -73,18 +83,15 @@ ArticleProvider.prototype.save = function(articles, callback) {
         for( var i =0;i< articles.length;i++ ) {
           article = articles[i];
           article.created_at = new Date();
-          if( article.questions === undefined ) 
-		{article.questions = [];
-		 article.rates=[];
-		article.question.created_at = new Date();
-		}
+	
          }
-
+	if( article.qs === undefined ) article.qs = [];
         article_collection.insert(articles, function() {
           callback(null, articles);
         });
       }
     });
+
 };
 
 exports.ArticleProvider = ArticleProvider;

@@ -1,16 +1,9 @@
 var connect = require('connect')
-   ,auth= require('../lib/index')
+   ,auth= require('lib/index')
    ,url = require('url')
-   ,fs = require('fs')
-   ,mongoStore = require('connect-mongodb')
-   ,ArticleProvider = require('./articleprovider-mongodb').ArticleProvider
-   ,articleProvider = new ArticleProvider('localhost', 27017);
+   ,fs = require('fs');
 
 var OAuth= require('oauth').OAuth;
-var user;
-
-//Setup connection to the mongodb
-
 
 var getSharedSecretForUserFunction = function(user,  callback) {
 	var result;
@@ -30,7 +23,7 @@ var validatePasswordFunction = function(username, password, successCallback, fai
 // N.B. TO USE Any of the OAuth or RPX strategies you will need to provide
 // a copy of the example_keys_file (named keys_file) 
 try {
-  var example_keys= require('./keys_file');
+  var example_keys= require('keys_file');
   for(var key in example_keys) {
     global[key]= example_keys[key];
   }
@@ -41,10 +34,8 @@ catch(e) {
 }
 
 // Setup the 'template' pages (don't use sync calls generally, but meh.)
-var authenticatedContent= fs.readFileSync( __dirname+"/public/home.html", "utf8" );
-var unAuthenticatedContent= fs.readFileSync( __dirname+"/public/home.html", "utf8" );
-
-
+var authenticatedContent= fs.readFileSync( __dirname+"/public/authenticated.html", "utf8" );
+var unAuthenticatedContent= fs.readFileSync( __dirname+"/public/unauthenticated.html", "utf8" );
 
 // There appear to be Scurrilous ;) rumours abounding that connect-auth
 // doesn't 'work with connect' as it does not act like an 'onion skin'
@@ -84,51 +75,10 @@ function routes(app) {
     req.logout(); // Using the 'event' model to do a redirect on logout.
   })
 
-app.post('/newq', function(req, res){
-	/*articleProvider.remove(function(err,p){
-	if(!p)
-		console.log('error in removing data');
-	});*/
-//	console.log(req.getAuthDetails().user);
-	console.log('Question is:' ,req.body.question);
-	articleProvider.findById(user.id, function(err,p){
-	if(!p){
-		articleProvider.save(
-		//add new user
-			{fid: req.getAuthDetails().user.id //facebook id
-			,fun: req.getAuthDetails().user.username // facebook username
-			,ffn: req.getAuthDetails().user.first_name //facebook first name
-			,fln: req.getAuthDetails().user.last_name //facebook last name
-			,flk: req.getAuthDetails().user.link //facebook url
-			,floc: req.getAuthDetails().user.location //facebook location
-			,fgen: req.getAuthDetails().user.gender //facebook gender
-			,created_at: new Date()
-			}, function( error, docs) {
-		       		
-	    	});
-	}
-	//else{ add question to existing user
-	console.log('p is not null',p);
-	articleProvider.addQuestionToUser(user.id,
-		{q:{n:req.body.question //question text
-		,ry:{v:0,updated_at : new Date()} //reply yes, value, updated date
-		,rn:{v:0,updated_at : new Date()} //reply yes, value, updated date
-		,t:1 //custom question //type of question 1: custom, 2:category
-		,created_at : new Date()}} //date when question was created
-		, function (error,docs){
-			res.end( authenticatedContent.replace("#save#", 'Saved question' ) );
-	    });
-	//}
-	});
-})
-  app.get('/', function(req, res, params) {
+  app.get(/.*/, function(req, res, params) {
     res.writeHead(200, {'Content-Type': 'text/html'})
     if( req.isAuthenticated() ) {
-	user = req.getAuthDetails().user;
-      res.end( authenticatedContent.replace("#USER#", JSON.stringify( req.getAuthDetails().user.first_name )  ) );
-	articleProvider.findAll( function(error,docs){
-        console.log(docs);
-           })
+      res.end( authenticatedContent.replace("#USER#", JSON.stringify( req.getAuthDetails().user )  ) );
     }
     else {
       res.end( unAuthenticatedContent.replace("#PAGE#", req.url) );
@@ -166,10 +116,7 @@ var server= connect.createServer(
                                         ],
                              trace: true,
                              logoutHandler: require('../lib/events').redirectOnLogout("/")
-			     
                              }),
                       example_auth_middleware(),
                       connect.router(routes));
-
 server.listen(80);
-console.log('Server listening on port 80');

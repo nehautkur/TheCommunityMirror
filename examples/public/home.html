@@ -3,7 +3,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>commMirrorPages</title>
-	<link rel="stylesheet" type="text/css" href="./home.css" media="all" />
+	<link rel="stylesheet" type="text/css" href="home.css" media="all" />
 	<!--[if IE]>
 	<style type="text/css" media="all">.borderitem {border-style: solid;}</style>
 	<![endif]-->
@@ -17,45 +17,39 @@
   <img src="commMirror3.png" align="absmiddle"/>
 	<div id="Div">
 		<div class="Txt_Welcome">
-			
-				<p class="lastNode">Welcome #USER# to The Community Mirror.  Here you will have the opportunity to get <br />
-				  feedback from your friends about how you are doing in varius areas of your life. So ask a question and find out where you can improve. 
-			</p>
-				<p class="lastNode">&nbsp;</p>
-	  </div><div>#page#</div>
+			<p class="lastNode">Welcome #USER# to The Community Mirror.  Here you will have the opportunity to get <br /> feedback from your friends about how you are doing in varius areas of your life. So ask a question and find out where you can improve. </p>
+			<p class="lastNode">&nbsp;</p>
+	  	</div>
 		<div class="clearFloat"></div>
 	</div>
-	<div class="clearFloat"></div><form>
-	<div class="Txt_What">
-		
-			<p class="lastNode">What question would you like to pose to your friends?
-            <input type="text" name="question" /><br />
-		</p>
-	</div>
 	<div class="clearFloat"></div>
-
-	<div class="Txt_Submit">
-		
+	<form action="http://localhost/newq" method="post">>
+		<div class="Txt_What">		
+			<p class="lastNode">What question would you like to pose to your friends?
+			<input type="text" name="question" /><br />
+			</p>
+		</div>
+		<div class="Txt_Submit">
 			<p class="lastNode"><input type="submit" value="Submit" />
-		</p>
-	</div>
-	<div class="Txt_Cancel">
+			</p>
+		</div>
+		<div class="Txt_Cancel">
 		
 			<p class="lastNode"><input type="reset" value="Cancel" />
-		</p>
-	</div></form>
+			</p>
+		</div>
+	</form>
 	<div class="fb_button" id="fb-login" style="float:left; background-position: left -188px">
                     <a href="?login_with=facebook" class="fb_button_medium">
-                      <span id="fb_login_text" class="fb_button_text">
-                        Login
-                      </span>
+                      <span id="fb_login_text" class="fb_button_text">Login</span>
                     </a>
                   </div>
-<div class="fb_button" id="fb-login" style="float:right; background-position: right -188px"><a href="/logout" class="fb_button_medium"><span id="fb_login_text" class="fb_button_text">Logout</span></a></div><p>&nbsp</p>
+	<p>&nbsp</p>
 	<div class="clearFloat"></div>
+	<div class="fb_button" id="fb-login" style="float:right; background-position: right -188px"><a href="/logout" 		class="fb_button_medium"><span id="fb_login_text" class="fb_button_text">Logout</span></a></div>
+	<div> #save# </div>
 	<div class="Txt_Copyright">
-		
-			<p class="lastNode">Copyright 2011 - The Community Mirror
+		<p class="lastNode">Copyright 2011 - The Community Mirror
 		</p>
 	</div>
 	<div class="clearFloat"></div>
