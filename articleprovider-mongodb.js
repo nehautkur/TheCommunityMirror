@@ -28,74 +28,37 @@ ArticleProvider.prototype.addQuestionToUser = function(facebookId, question, cal
 * Updates rating on the question according to reply (yes/no)
 */
 
-/*
-ArticleProvider.prototype.modifyRating = function(facebookId, reply, question,newValue,callback) {
-  this.getCollection(function(error, article_collection) {
-    if( error ) callback( error );
-    else {
-	console.log("inside update rating");
-	//article_collection.findById(facebookId, function(err, result){
-	article_collection.findOne({fid: facebookId}, function(error, result) {
-		if( error ) callback( error );
-		else{
-			if(reply==='yes'){	      	
-				if(result!=null){
-					result.update({qs :{q:{q:{n:question}}}},
-		       			{"$set": {qs :{q:{q:{ry:{v: newValue}}}}}},
-					{"$set": {qs :{q:{q:{rn:{updated_at: new Date()}}}}}},
-					function(error, article){
-			  			if( error ) callback(error);
-			  			else callback(null, article)
-					});
-				}
-			}
-			else{
-				if(result!=null){
-					result.update({qs :{q:{q:{n:question}}}},
-					{"$set": {qs :{q:{q:{rn:{v:newValue}}}}}}, 
-					{"$set": {qs :{q:{q:{rn:{updated_at: new Date()}}}}}},
-					function(error, article){
-				  		if( error ) callback(error);
-				  		else callback(null, article)
-					});
-				}
-			} 
-		}
-	});
-	}
-    });
-};
-
+/***** not working******
 ArticleProvider.prototype.modifyRating = function(facebookId, reply, question,newValue,callback) {
   this.getCollection(function(error, article_collection) {
     if( error ) callback( error );
     else {
 	console.log("inside update rating");
 	if(reply==='yes'){	
+	console.log('inside Yes');
 	//article_collection.findById(facebookId, function(err, result){
-	article_collection.findOne({fid: facebookId}, {qs :{q:{q:{n:question}}}},		
-		      {"$set": {qs :{q:{q:{ry:{v: newValue}}}}}},
-					{"$set": {qs :{q:{q:{rn:{updated_at: new Date()}}}}}},
+	article_collection.update({fid: facebookId, qs:[{q:{n:question}}]},
+	      {"$set": {qs:[{q:{ry:{v:newValue}}}]},
+	     "$set": {qs:[{q:{ry:{updated_at: new Date()}}}}]},
 					function(error, article){
 			  			if( error ) callback(error);
 			  			else callback(null, article)
 					});
 		}
-	else{
-								
-	article_collection.findOne({fid: facebookId}, {qs :{q:{q:{n:question}}}},
-			{"$set": {qs :{q:{q:{rn:{v:newValue}}}}}}, 
+	else{						
+	article_collection.update({fid: facebookId, qs:[{q:[{q:{"$elemMatch": {n:question}}}]}]},
+			{"$set": {qs:[{q:[{q:{rn:{v:newValue}}}]}]}}, 
 					{"$set": {qs :{q:{q:{rn:{updated_at: new Date()}}}}}},
 					function(error, article){
 				  		if( error ) callback(error);
 				  		else callback(null, article)
 					});
-				}
-			} 
+				} 
+			}
 		
 	});
 };
-*/
+********/
 //getCollection
 
 ArticleProvider.prototype.getCollection= function(callback) {

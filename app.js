@@ -150,12 +150,12 @@ app.post('/newq', function(req, res){
 	user = req.getAuthDetails().user;
       /*res.end( authenticatedContent.replace('<div class="Txt_dynamic"></div>','<div class="Txt_dynamic">'+ JSON.stringify( req.getAuthDetails().user.first_name )+' </div>' ) );*/
 	articleProvider.findById(user.id, function(error,docs){
-        console.log(docs);
+        console.log(docs.qs);
 	var replaceContent = '<div name="uq"></div>';
 	if(docs!=null){
 	for(var i = 0; i<docs.qs.length;i++){
 		var q = docs.qs[i].q;
-		console.log('This:',q);
+		//console.log('This:',docs.qs[i]);
 		var question = q.n;
 		console.log('Question: '+question);
 		var yes = q.ry.v;
@@ -185,11 +185,11 @@ else{
 	reply= 'yes';
 	value = req.body.ry++;
 }
-	/*articleProvider.modifyRating(user.id,reply,req.body.question1,value,function(error,docs){
+/*********NOT WORKING*******
         console.log(docs);
 	res.end(profileContent);
-	});*/
-
+	});
+*****************/
 })
 }
 
