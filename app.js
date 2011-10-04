@@ -1,9 +1,16 @@
 var connect = require('connect')
-   ,auth= require('lib/index')
+   ,auth= require('/lib/index')
    ,url = require('url')
-   ,fs = require('fs');
+   ,fs = require('fs')
+   ,mongoStore = require('connect-mongodb')
+   ,ArticleProvider = require('./articleprovider-mongodb').ArticleProvider
+   ,articleProvider = new ArticleProvider('localhost', 27017);
 
 var OAuth= require('oauth').OAuth;
+var user;
+
+//Setup connection to the mongodb
+
 
 var getSharedSecretForUserFunction = function(user,  callback) {
 	var result;
@@ -23,7 +30,7 @@ var validatePasswordFunction = function(username, password, successCallback, fai
 // N.B. TO USE Any of the OAuth or RPX strategies you will need to provide
 // a copy of the example_keys_file (named keys_file) 
 try {
-  var example_keys= require('keys_file');
+  var example_keys= require('./keys_file');
   for(var key in example_keys) {
     global[key]= example_keys[key];
   }
@@ -34,8 +41,10 @@ catch(e) {
 }
 
 // Setup the 'template' pages (don't use sync calls generally, but meh.)
-var authenticatedContent= fs.readFileSync( __dirname+"/public/authenticated.html", "utf8" );
-var unAuthenticatedContent= fs.readFileSync( __dirname+"/public/unauthenticated.html", "utf8" );
+var authenticatedContent= fs.readFileSync( __dirname+"/public/profile.html", "utf8" );
+var unAuthenticatedContent= fs.readFileSync( __dirname+"/public/profile.html", "utf8" );
+var profileContent= fs.readFileSync( __dirname+"/public/profile.html", "utf8" );
+
 
 // There appear to be Scurrilous ;) rumours abounding that connect-auth
 // doesn't 'work with connect' as it does not act like an 'onion skin'
@@ -75,15 +84,113 @@ function routes(app) {
     req.logout(); // Using the 'event' model to do a redirect on logout.
   })
 
+app.post('/newq', function(req, res){
+	if(req.isAuthenticated()){
+	/*articleProvider.remove(function(err,p){
+	if(!p)
+		console.log('error in removing data');
+	});*/
+//	console.log(req.getAuthDetails().user);
+	console.log('Question is:' ,req.body.question);
+	articleProvider.findById(user.id, function(err,p){
+	if(!p){
+		articleProvider.save(
+		//add new user
+			{fid: req.getAuthDetails().user.id //facebook id
+			,fun: req.getAuthDetails().user.username // facebook username
+			,ffn: req.getAuthDetails().user.first_name //facebook first name
+			,fln: req.getAuthDetails().user.last_name //facebook last name
+			,flk: req.getAuthDetails().user.link //facebook url
+			,floc: req.getAuthDetails().user.location //facebook location
+			,fgen: req.getAuthDetails().user.gender //facebook gender
+			,created_at: new Date()
+			}, function( error, docs) {
+		       		
+	    	});
+	}
+	//else{ add question to existing user
+	console.log('p is not null',p);
+	articleProvider.addQuestionToUser(user.id,
+		{q:{n:req.body.question //question text
+		,ry:{v:0,updated_at : new Date()} //reply yes, value, updated date
+		,rn:{v:0,updated_at : new Date()} //reply yes, value, updated date
+		,t:1 //custom question //type of question 1: custom, 2:category
+		,created_at : new Date()}} //date when question was created
+		, function (error,docs){
+			//res.end( authenticatedContent.replace('<div class="Txt_dynamic_save"></div>', '<div class="Txt_dynamic_save">Saved Question</div>' ) );
+	    });
+	//}
+	});
+	articleProvider.findById(user.id, function(error,docs){
+        console.log('Docs',docs);
+	var replaceContent = '<div name="uq"></div>';
+	if(docs!=null){
+	for(var i = 0; i<docs.qs.length;i++){
+		var q = docs.qs[i].q;
+		console.log('This:',q);
+		var question = q.n;
+		console.log('Question: '+question);
+		var yes = q.ry.v;
+		var no = q.rn.v;
+		replaceContent = replaceContent + '<tr><td><input type="hidden" name="question1" value='+question+'/>'+question+'</td><td><input type="submit" value="Yes" class="button" name="yes"/><td><input type="hidden" name="ry" value='+yes+'/>'+yes+'</td></td><td><input type="submit" value="No" class="button" name="no"/></td><td><input type="hidden" name="rn" value='+no+'/>'+no+'</td></tr>';
+		
+	}
+	}
+	//replaceContent = replaceContent + '<div name="uq"></div>';
+	res.end(profileContent.replace('<div name="uq"></div>',replaceContent));
+           })
+	}
+	else{
+		res.end( authenticatedContent.replace('<div class="Txt_dynamic_save"></div>', '<div class="Txt_dynamic_save">You need to login to post questions!</div>' ) );
+	}
+})
   app.get(/.*/, function(req, res, params) {
     res.writeHead(200, {'Content-Type': 'text/html'})
     if( req.isAuthenticated() ) {
-      res.end( authenticatedContent.replace("#USER#", JSON.stringify( req.getAuthDetails().user )  ) );
+	user = req.getAuthDetails().user;
+      /*res.end( authenticatedContent.replace('<div class="Txt_dynamic"></div>','<div class="Txt_dynamic">'+ JSON.stringify( req.getAuthDetails().user.first_name )+' </div>' ) );*/
+	articleProvider.findById(user.id, function(error,docs){
+        console.log(docs);
+	var replaceContent = '<div name="uq"></div>';
+	if(docs!=null){
+	for(var i = 0; i<docs.qs.length;i++){
+		var q = docs.qs[i].q;
+		console.log('This:',q);
+		var question = q.n;
+		console.log('Question: '+question);
+		var yes = q.ry.v;
+		var no = q.rn.v;
+		replaceContent = replaceContent + '<tr><td><input type="hidden" name="question1" value='+question+'/>'+question+'</td><td><input type="submit" value="Yes" class="button" name="yes"/><td><input type="hidden" name="ry" value='+yes+'/>'+yes+'</td></td><td><input type="submit" value="No" class="button" name="no"/></td><td><input type="hidden" name="rn" value='+no+'/>'+no+'</td></tr>';
+		
+	}
+	}
+	//replaceContent = replaceContent + '<div name="uq"></div>';
+	res.end(profileContent.replace('<div name="uq"></div>',replaceContent));
+           })
     }
     else {
-      res.end( unAuthenticatedContent.replace("#PAGE#", req.url) );
+      res.end( unAuthenticatedContent.replace('<div class="Txt_dynamic_save"></div>', '<div class="Txt_dynamic_save">'+req.url+'</div>' ));
     }
   })
+app.post('/getRate', function(req, res){
+console.log('Question is:' ,req.body.question1);
+var reply;
+if(req.body.yes === undefined){
+	reply = 'no';
+	value = req.body.rn++;
+	console.log('Response is: ',req.body.no);
+}
+else{
+	console.log('Response is: ',req.body.yes);
+	reply= 'yes';
+	value = req.body.ry++;
+}
+	/*articleProvider.modifyRating(user.id,reply,req.body.question1,value,function(error,docs){
+        console.log(docs);
+	res.end(profileContent);
+	});*/
+
+})
 }
 
 process.on('uncaughtException', function (err) {
@@ -115,8 +222,11 @@ var server= connect.createServer(
                                         , auth.Openid({callback: openIdCallback})
                                         ],
                              trace: true,
-                             logoutHandler: require('../lib/events').redirectOnLogout("/")
+                             logoutHandler: require('/lib/events').redirectOnLogout("/")
+			     
                              }),
                       example_auth_middleware(),
                       connect.router(routes));
-server.listen(80);
+
+server.listen(8000);
+console.log('Server listening on port 8000');

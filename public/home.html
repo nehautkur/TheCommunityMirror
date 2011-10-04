@@ -16,38 +16,31 @@
 
   <img src="commMirror3.png" align="absmiddle"/>
 	<div id="Div">
-		<div class="Txt_Welcome">
-			<p class="lastNode">Welcome #USER# to The Community Mirror.  Here you will have the opportunity to get <br /> feedback from your friends about how you are doing in varius areas of your life. So ask a question and find out where you can improve. </p>
+		<div class="Txt_Welcome"><div class="Txt_dynamic"></div>
+			<p class="lastNode">Welcome to The Community Mirror.  Here you will have the opportunity to get <br /> feedback from your friends about how you are doing in varius areas of your life. So ask a question and find out where you can improve. </p>
 			<p class="lastNode">&nbsp;</p>
 	  	</div>
 		<div class="clearFloat"></div>
 	</div>
 	<div class="clearFloat"></div>
-	<form action="http://localhost/newq" method="post">>
-		<div class="Txt_What">		
-			<p class="lastNode">What question would you like to pose to your friends?
-			<input type="text" name="question" /><br />
-			</p>
-		</div>
-		<div class="Txt_Submit">
-			<p class="lastNode"><input type="submit" value="Submit" />
-			</p>
-		</div>
-		<div class="Txt_Cancel">
-		
-			<p class="lastNode"><input type="reset" value="Cancel" />
-			</p>
-		</div>
-	</form>
+	<form action="http://localhost:8000/newq" method="post">
+	<fieldset>
+	  <legend>Ask Question</legend>
+	   <input type="text" class="input" name="question"/>
+    	<p>&nbsp</p>
+	    <label>&nbsp; </label> <input type="submit" value="Submit" class="button" /> <input type="submit" value="Cancel" class="button" />
+	 </fieldset>
+	</form> 
+	<div class="clearFloat"></div>
 	<div class="fb_button" id="fb-login" style="float:left; background-position: left -188px">
                     <a href="?login_with=facebook" class="fb_button_medium">
                       <span id="fb_login_text" class="fb_button_text">Login</span>
                     </a>
                   </div>
-	<p>&nbsp</p>
-	<div class="clearFloat"></div>
-	<div class="fb_button" id="fb-login" style="float:right; background-position: right -188px"><a href="/logout" 		class="fb_button_medium"><span id="fb_login_text" class="fb_button_text">Logout</span></a></div>
-	<div> #save# </div>
+	
+	<div class="fb_button" id="fb-login" style="float:right; background-position: right -188px"><a href="/logout" 						class="fb_button_medium"><span id="fb_login_text" class="fb_button_text">Logout</span></a></div>
+<div class="clearFloat"></div>
+	<div class="Txt_dynamic_save"></div>
 	<div class="Txt_Copyright">
 		<p class="lastNode">Copyright 2011 - The Community Mirror
 		</p>
