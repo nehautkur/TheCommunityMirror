@@ -9,11 +9,11 @@ $ npm install -d
 This will install all the dependancies.
 Start mongodb 
 $ mongod
-now in terminal go to source root/examples
+now in terminal go to source root
 
 $node app.js
 
-This should start the application at port 80
+This should start the application at port 8000
 
-http://localhost/
+http://localhost:8000/
 
