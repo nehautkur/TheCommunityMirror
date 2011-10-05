@@ -86,13 +86,10 @@ function routes(app) {
 
 app.post('/newq', function(req, res){
 	if(req.isAuthenticated()){
-	/*articleProvider.remove(function(err,p){
-	if(!p)
-		console.log('error in removing data');
-	});*/
+	
 //	console.log(req.getAuthDetails().user);
 	console.log('Question is:' ,req.body.question);
-	articleProvider.findById(user.id, function(err,p){
+	articleProvider.findById('articles',user.id, function(err,p){
 	if(!p){
 		articleProvider.save(
 		//add new user
@@ -110,63 +107,72 @@ app.post('/newq', function(req, res){
 	}
 	//else{ add question to existing user
 	console.log('p is not null',p);
-	articleProvider.addQuestionToUser(user.id,
-		{q:{n:req.body.question //question text
-		,ry:{v:0,updated_at : new Date()} //reply yes, value, updated date
-		,rn:{v:0,updated_at : new Date()} //reply yes, value, updated date
+	articleProvider.addQuestionToUser(({n:req.body.question //question text
 		,t:1 //custom question //type of question 1: custom, 2:category
-		,created_at : new Date()}} //date when question was created
+		,created_at : new Date()
+		,uid:user.id})
+		,({ry:0,rn:0,qid:0,updated_at:new Date})
 		, function (error,docs){
 			//res.end( authenticatedContent.replace('<div class="Txt_dynamic_save"></div>', '<div class="Txt_dynamic_save">Saved Question</div>' ) );
 	    });
 	//}
 	});
-	articleProvider.findById(user.id, function(error,docs){
+	articleProvider.findQuestions(user.id, function(error,docs){
         console.log('Docs',docs);
 	var replaceContent = '<div name="uq"></div>';
-	if(docs!=null){
-	for(var i = 0; i<docs.qs.length;i++){
-		var q = docs.qs[i].q;
-		console.log('This:',q);
-		var question = q.n;
+	if(typeof (docs!== undefined) && docs!=null){
+	for(var i = 0; i<docs.length;i++){
+		//var q = docs.qs[i].q;
+		//console.log('This:',q);
+		var question = docs[i].text;
 		console.log('Question: '+question);
-		var yes = q.ry.v;
-		var no = q.rn.v;
-		replaceContent = replaceContent + '<tr><td><input type="hidden" name="question1" value='+question+'/>'+question+'</td><td><input type="submit" value="Yes" class="button" name="yes"/><td><input type="hidden" name="ry" value='+yes+'/>'+yes+'</td></td><td><input type="submit" value="No" class="button" name="no"/></td><td><input type="hidden" name="rn" value='+no+'/>'+no+'</td></tr>';
+		var yes = docs[i].ry;
+		var no = docs[i].rn;
+		replaceContent = replaceContent + '<form action="http://localhost:8000/getRate" method="post"><tr><td><input type="hidden" name="question1" value='+question+'/>'+question+'</td><td><input type="submit" value="Yes" class="button" name="yes"/><td><input type="hidden" name="ry" value='+yes+'/>'+yes+'</td></td><td><input type="submit" value="No" class="button" name="no"/></td><td><input type="hidden" name="rn" value='+no+'/>'+no+'</td></tr></form>';
 		
 	}
 	}
-	//replaceContent = replaceContent + '<div name="uq"></div>';
+})
+app.get('/', function(req,res) {
 	res.end(profileContent.replace('<div name="uq"></div>',replaceContent));
-           })
+           });
 	}
 	else{
 		res.end( authenticatedContent.replace('<div class="Txt_dynamic_save"></div>', '<div class="Txt_dynamic_save">You need to login to post questions!</div>' ) );
 	}
 })
   app.get(/.*/, function(req, res, params) {
-    res.writeHead(200, {'Content-Type': 'text/html'})
-    if( req.isAuthenticated() ) {
+   if( req.isAuthenticated() ) {
+	 /*articleProvider.remove(function(err,p){
+	if(!p)
+		console.log('error in removing data');
+	});*/
 	user = req.getAuthDetails().user;
       /*res.end( authenticatedContent.replace('<div class="Txt_dynamic"></div>','<div class="Txt_dynamic">'+ JSON.stringify( req.getAuthDetails().user.first_name )+' </div>' ) );*/
-	articleProvider.findById(user.id, function(error,docs){
-        console.log(docs.qs);
+	articleProvider.findQuestions(user.id, function(error,docs){
+        console.log('Docs',docs);
 	var replaceContent = '<div name="uq"></div>';
-	if(docs!=null){
-	for(var i = 0; i<docs.qs.length;i++){
-		var q = docs.qs[i].q;
-		//console.log('This:',docs.qs[i]);
-		var question = q.n;
+	if(typeof (docs!== undefined) && docs!=null){
+	for(var i = 0; i<docs.length;i++){
+		//var q = docs.qs[i].q;
+		//console.log('This:',q);
+		var question = docs[i].text;
 		console.log('Question: '+question);
-		var yes = q.ry.v;
-		var no = q.rn.v;
-		replaceContent = replaceContent + '<tr><td><input type="hidden" name="question1" value='+question+'/>'+question+'</td><td><input type="submit" value="Yes" class="button" name="yes"/><td><input type="hidden" name="ry" value='+yes+'/>'+yes+'</td></td><td><input type="submit" value="No" class="button" name="no"/></td><td><input type="hidden" name="rn" value='+no+'/>'+no+'</td></tr>';
+		var yes = docs[i].ry;
+		var no = docs[i].rn;
+		replaceContent = replaceContent + '<form action="http://localhost:8000/getRate" method="post"><tr><td><input type="hidden" name="question1" value='+question+'/>'+question+'</td><td><input type="submit" value="Yes" class="button" name="yes"/><td><input type="hidden" name="ry" value='+yes+'/>'+yes+'</td></td><td><input type="submit" value="No" class="button" name="no"/></td><td><input type="hidden" name="rn" value='+no+'/>'+no+'</td></tr></form>';
 		
 	}
 	}
-	//replaceContent = replaceContent + '<div name="uq"></div>';
-	res.end(profileContent.replace('<div name="uq"></div>',replaceContent));
-           })
+ res.end(profileContent.replace('<div name="uq"></div>',replaceContent));
+ })
+
+          	 
+            
+          
+          
+	
+	
     }
     else {
       res.end( unAuthenticatedContent.replace('<div class="Txt_dynamic_save"></div>', '<div class="Txt_dynamic_save">'+req.url+'</div>' ));
@@ -189,7 +195,13 @@ else{
         console.log(docs);
 	res.end(profileContent);
 	});
-*****************/
+*******************/
+	articleProvider.modifyRating(req.body.question1,user.id,reply, function(error,docs){
+		app.get('/', function(req,res) {
+          	 
+             res.end("");
+          });
+	});
 })
 }
 
