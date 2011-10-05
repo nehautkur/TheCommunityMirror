@@ -133,9 +133,9 @@ app.post('/newq', function(req, res){
 	}
 	}
 })
-app.get('/', function(req,res) {
+
 	res.end(profileContent.replace('<div name="uq"></div>',replaceContent));
-           });
+        
 	}
 	else{
 		res.end( authenticatedContent.replace('<div class="Txt_dynamic_save"></div>', '<div class="Txt_dynamic_save">You need to login to post questions!</div>' ) );
@@ -197,11 +197,9 @@ else{
 	});
 *******************/
 	articleProvider.modifyRating(req.body.question1,user.id,reply, function(error,docs){
-		app.get('/', function(req,res) {
-          	 
+		         	 
              res.end("");
-          });
-	});
+         });
 })
 }
 
