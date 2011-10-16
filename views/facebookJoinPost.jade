@@ -1,0 +1,68 @@
+-if(account)
+  h2(style='font-weight:bold;padding-bottom:5px;') Whats Your question?
+  form(#myForm action='/',method='get')
+    input(#QText type = 'text', name='question',style='width:350px;margin-left:45px;',value =question.text, disabled='disabled')
+  div
+      br      
+      input(#send type='button',value='Send to friends',onClick = 'postToFriends()',style='background-color:#000000;border:solid;border-color:#666666;border-width:1px;color:#E3E3E3;padding:5px;font-weight:bold;cursor:pointer;position:relative;top:-15px;margin-left:5px;')
+      input(#wall type='button',value='Post on Wall',onClick = 'postToFeed()',style='background-color:#000000;border:solid;border-color:#666666;border-width:1px;color:#E3E3E3;padding:5px;font-weight:bold;cursor:pointer;position:relative;top:-15px;margin-left:5px;')
+  div(style='width:600px;')
+    -for(var i=0;i<nods.length;i++)
+      div(style='background-color:#000000;padding:10px;margin-top:5px;border:solid;border-color:#666666;border-width:1px;')
+        div
+          a(href='/'+nods[i]._id,style='padding-right:10px;')=nods[i].text
+        span='Yes  '+nods[i].yes
+        br
+        span='No   '+nods[i].no
+        div(style='color:#999999;font-size:12px;')=howLongAgo(nods[i].date)+' ago'
+  div
+    script(src='http://connect.facebook.net/en_US/all.js')
+    script (src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js")
+    #fb-root
+    script
+        var fLink = '';
+        var fName = 'Community Mirror';
+        var fPic = 'http://www.thecommunitymirror.com/images/green_grey/evenDarkerLogo.jpg';
+        var fDesc = 'Find out what your friends really think of you!';
+        var fCap = 'Community Mirror';          
+        var qid = '';
+        var qText = '';
+        function initialize(){
+          var fQuestion = !{JSON.stringify(question)};
+          qid = fQuestion._id;
+          qText = fQuestion.text;
+          var fLink = 'http://www.thecommunitymirror.com/'+qid;
+          var fPic = 'http://www.thecommunitymirror.com/images/green_grey/evenDarkerLogo.jpg';
+          var fDesc = 'Find out what your friends really think of you!';
+          var fCap = 'Click on the question to answer your friends question!';
+          //alert(fLink);
+          }
+        function postToFriends() {
+          initialize();
+          FB.init({appId: '172451406173427', xfbml: true, cookie: true});
+          FB.ui({
+              method: 'send',
+              name: qText,
+              description: fDesc,
+              picture: fPic,
+              link: 'https://apps.facebook.com/communitymirror/'+qid,
+              }, function(response){
+            window.location.replace("https://apps.facebook.com/communitymirror");
+            });
+          }
+        function postToFeed() {
+          initialize();
+          var obj = {
+            method: 'feed',
+            name: qText,
+            link: "https://apps.facebook.com/communitymirror/"+qid,
+            picture:fPic,
+            caption: fCap,
+            description: fDesc
+            };
+          FB.init({appId: '172451406173427', xfbml: true, cookie: true});
+          FB.ui(obj, callback);
+          }
+        function callback(response) {
+            window.location.replace("https://apps.facebook.com/communitymirror");
+          }
