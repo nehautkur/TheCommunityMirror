@@ -1,20 +1,33 @@
 express = require('express');
 force_domain = require('connect-force-domain');
-app = module.exports = express.createServer(force_domain('www.nodrr.com'));
-sys = require('sys');
+app = module.exports = express.createServer();//
+sys = require('util');
 fs = require('fs');
+queryString = require('querystring')
+https = require('https');
 http = require('http');
 
 mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/db');
+mongoose.connect('mongodb://127.0.0.1/communityMirrorBeta_1_2');
+var dbref = require("mongoose-dbref");
+var loaded = dbref.install(mongoose);
+var authenticated = false;
+var acc;
+
 Schema = mongoose.Schema;
 ObjectId = Schema.ObjectId;
+var DBRef = mongoose.SchemaTypes.DBRef;
 
-require('./models/account.js');
-require('./models/nod.js');
 
-Account = mongoose.model('Account');
-Nod = mongoose.model('Nod');
+require('./models/users.js');
+require('./models/questions.js');
+require('./models/replies.js');
+
+
+Users = mongoose.model('Users');
+Questions = mongoose.model('Questions');
+//Replies = mongoose.model('Replies');
+
 
 connect = require('connect');
 auth = require('connect-auth');
@@ -27,19 +40,19 @@ app.configure(function(){
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.bodyParser());
+//  app.use(express.bodyDecoder());
   app.use(express.methodOverride());
-  app.use(express.cookieParser());
+  app.use(connect.cookieParser());
   app.use(express.session({
     //store: mongoStore({
     //  dbname: 'sessions',
     //  username: '',
    //   password: ''
    // }),
-    secret: 'nodrrsecret'
+    secret: 'commsecret'
   }));
   app.use(express.logger({ format: ':date :remote-addr :method :status :url' }));
-  app.use(auth([
-    auth.Facebook({appId : fbId, appSecret: fbSecret, scope : "email", callback: fbCallbackAddress})
+  app.use(auth([auth.Facebook({appId : fbId, appSecret: fbSecret, scope : ["publish_stream","share_item","email","read_friendlists","publish_actions"], callback: fbCallbackAddress})
   ]));
   app.use(express.static(__dirname + '/public'));
   app.use(app.router);
@@ -54,18 +67,33 @@ app.configure('production', function(){
 });
 
 var loadFacebookAccount = function(facebook_details,loadCallback){
-  Account.findOne({ facebook_id: facebook_details.user.id }, function(err,account){
+  console.log('****FACEBOOK DETAILS***',facebook_details)
+  Users.findOne({ facebook_id: facebook_details.user.id }, function(err,account){
     if(account){
+      /*account.totalQuestions=0;
+      account.totalResponses = 0;
+      account.save(function(err){*/
+       //acc=n;
       loadCallback(account);
+      //});
+     // loadCallback(account);
+
     }
     else{
-      var n = new Account();
+      var n = new Users();
       n.email = facebook_details.user.email;
+      n.username = facebook_details.user.username;
       n.type = 1;
+      n.fname = facebook_details.user.first_name;
+      n.lname = facebook_details.user.last_name;
       n.facebook_id = facebook_details.user.id;
       n.date = new Date();
+      n.timezone = facebook_details.timezone;
+      n.totalResponses = 0;
+      n.totalQuestions=0;
       n.save(function(err){
-        loadCallback(n);
+       //acc=n;
+      loadCallback(n);
       });
     }
   });
@@ -75,16 +103,18 @@ loadAccount = function(req,loadCallback){
   if(req.isAuthenticated()){
     //load account out of database
     if(req.getAuthDetails().user.id){
-      //its a facebook login - try and grab out of db otherwise make a user off of fbook credentials
+      console.log('Authenticated: ',req.getAuthDetails())
       var fbook_details = req.getAuthDetails();
+      //authenticated = true;
       loadFacebookAccount(fbook_details,loadCallback);
     }
   }
   else{
+    console.log('Not authenticated!');
+    acc=null;
     loadCallback(null);
   }
 }
-
 require('./global_funcs.js');
 
 // Routes ( Controllers )
@@ -93,9 +123,130 @@ require('./controllers/auth.js');
 require('./controllers/edit.js');
 require('./controllers/nod.js');
 require('./controllers/user.js');
+require('./controllers/getRated.js');
+require('./controllers/updateRate.js');
+require('./controllers/updateRatetoYes.js');
+require('./controllers/updateRatetoNo.js');
+require('./controllers/showAll.js');
+require('./controllers/getRatedPost.js');
+require('./controllers/nodPost.js');
+require('./controllers/getRatedFromNotification.js');
+require('./controllers/thankyou.js');
+require('./controllers/promotion.js');
 
 //Only listen on $ node app.js   
 if (!module.parent) {              
-  app.listen(80);
-  console.log("Express server listening on port %d", app.address().port)
+  app.listen(80); //,'communitymirror_dev'
+ console.log("Express server listening on port %d", app.address().port)
+ var everyone = require("now").initialize(app);
+ everyone.now.distributeMessage = function(message, acc){
+  //call function to update question and send the qid
+    console.log('Inside Distribute Message')
+    if(acc){
+      var n = new Questions();
+      n.user=acc._id;     
+      n.text = message;
+      n.date = new Date();
+      n.yes =0;
+      n.no = 0;
+      n.total = 0;
+      n.last_update = new Date();
+      //console.log('New Question: ', n)
+      n.save(function(err){
+        if (err) throw err;
+        acc.questions.push(n._id);
+      });
+    
+    everyone.now.receiveMessage(n._id, message);
+    }
+  };
+  everyone.now.saveRequest = function(message, acc, request){
+  //call function to update question and send the qid
+    console.log('Inside save request',message, acc, request)
+    if(acc){
+      var n = new Questions();
+      n.user=acc._id;     
+      n.text = message;
+      n.date = new Date();
+      n.yes =0;
+      n.no = 0;
+      n.total = 0;
+      n.request_ids.push(request);
+      n.last_update = new Date();
+      console.log('New Question: ', n)
+      n.save(function(err){
+        if (err) throw err;
+        //acc.questions.push(n._id);
+        else{
+          Users.findOne({_id:n.user},function(err,user){
+          user.questions.push(n._id);
+          user.totalQuestions++;
+          user.save(function(err){
+            if (err) throw err;
+            else{
+              console.log('In saveRequest app.js: ',user)
+            }
+          });
+        });
+        }
+      });
+    
+    everyone.now.receiveMessage('', 'sent');
+    }
+  };
+  everyone.now.updateQuestionInfo = function(qid,request){
+    console.log('UPDATEQUESTIONINFO: ', request);
+    Questions.findOne({_id:qid},function(err,question){
+      if(question){
+        question.request_ids.push(request);
+        question.save(function(err){
+          if (err) throw err;
+          else{
+            console.log('Question saved Success',question)
+            return true;
+          }
+        });
+      }
+      else{
+        return false;
+      }
+
+    });
+    everyone.now.sendMessage(true);
+  };
+
+  everyone.now.updateRating = function(qid,request,acc){
+    console.log('** inside update Rating : ', qid)
+    Questions.findOne({_id:qid},function(err,question){
+      if (err) throw err;
+      else{
+        if(request === 'yes')
+          question.yes++;
+        else if (request === 'no')
+          question.no++;
+          question.total = question.yes+question.no;
+          question.last_update = new Date();
+          question.save(function(err){
+          if (err) throw err;
+          else{
+            Users.findOne({_id:question.user},function(err,user){
+            user.totalResponses++;
+            user.save(function(err){
+            if (err) throw err;
+              else{
+                console.log('** inside update Rating acc: ', user)
+              }
+            });
+          });
+        }
+        });
+      }
+    });
+    everyone.now.sendUpdate(true);
+  };
 }
+ 
+
+
+
+  

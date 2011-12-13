@@ -1,0 +1,133 @@
+html
+  head
+    title=title
+    link(rel='stylesheet',type='text/css',href='/css/answer.css')
+    link(rel='stylesheet',type='text/css',href='/css/profile.css')
+    link(rel='stylesheet',type='text/css',href='/css/cm.css')
+    script(type='text/javascript',src='http://static.ak.fbcdn.net/connect/en_US/core.js')
+    script(src='http://connect.facebook.net/en_US/all.js')
+    script(type='text/javascript', src='/js/jquery.js')
+  body
+    #centered
+      #Oobj92
+        img#Ggeo68(alt="", src="../images/Profile-Page-v4.png")
+      #Oobj24
+        a(href='/home')
+         img#Ggeo28(alt="", src="../images/Logo.png")
+      #Oobj25
+        a(href='/home')
+          img#Ggeo29(alt="", src="../images/The Community Mirror.png")
+      #Oobj28
+        #Grtf44.dfltt
+          span.txt0
+            | Use your community as mirror for
+            | your life
+          br
+          br
+          span.txt0  
+            | Answers are always
+            span.bold anonymous
+       #Oobj31
+        #Grtf189.dfltt
+          span.txt7
+            | Here's what your Friends have asked
+            | You..
+      #containerAns
+        -for(var i=0;i<question.length;i++)
+          .wrapper-box.module.profile
+            .clear
+              .boxIndent 
+                 hr.box_hr                 
+                 a(id='yeye'+i,target='_blank', href='https://www.facebook.com/profile.php?id='+userFacebookId[i])= userfName[i]+' '+userlName[i]+' asked you...' 
+                 .txt12
+                  form(action='/'+id[i]+'/rate',method='post')
+                    span= question[i]                  
+                      #Oobj104
+                        br
+                        input.yes.button(id = 'dely_'+i, type='button',value='Absolutely!')
+                        input.no.button(id = 'deln_'+i, type='button',value='Not so much!')                      
+                                  
+    div      
+      script(src='http://connect.facebook.net/en_US/all.js')
+      script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js')
+      script(src='/nowjs/now.js')
+      #fb-root
+      script 
+          $(document).ready(function(){
+              var requestId = !{JSON.stringify(requestId)};
+              var questionId = !{JSON.stringify(id)};
+              var account = !{JSON.stringify(account)};
+              var $qid;
+              now.sendUpdate = function(message){
+                //alert(message)
+                if(message)
+                {
+                  getRequest(requestId[$qid][0], function(recFacebookId){
+                    //alert(recFacebookId);
+                    if(recFacebookId.length > 0){
+                      deleteRequests(requestId[$qid],recFacebookId[[requestId]]['to']['id'], function(success){
+                          if(success){
+                            if($qid == questionId.length-1){
+                              window.location.replace("/show/thankyou");
+                            }
+                            else{
+                              var divName = 'yeye'+$qid;
+                              $(divName).html("Thank you for the answer!");
+                            }
+                          }
+                          
+                        });
+                      }
+                    else{
+                        if($qid == questionId.length-1){
+                          window.location.replace("/show/thankyou");
+                        }
+                      }
+                    });                                     
+                  }              
+                }
+              $(".yes").click(function(){
+                //alert('Yes!: ')
+                $qid = parseInt(this.id.substring(5));
+                //alert($qid)
+                now.updateRating(questionId[$qid],'yes',account);
+              });
+              $(".no").click(function(){
+                $qid = parseInt(this.id.substring(5));
+                //alert('No!: '+questionId[$qid])
+                now.updateRating(questionId[$qid],'no',account);
+              });
+          });  
+          function deleteRequests(reqIds,facebookId, callback){
+            alert('inside delete')
+            FB.init({appId: '201147376628942', xfbml: true, cookie: true});
+            $.each(reqIds, function(i, requestId){ 
+              (function(i) {
+                setTimeout(function(){
+                  var removeId = '/'+requestId+'_'+facebookId;
+                  alert(removeId)                      
+                  FB.api(removeId, 'DELETE', function(response){
+                    //alert(response);
+                    if(i== reqIds.length-1){
+                      callback('success');
+                    }
+                  });
+                }, 1000 * (i));
+              })(i);
+            });
+          } 
+          function getRequest(requestId,callback) {
+            FB.init({appId: '201147376628942', xfbml: true, cookie: true});
+            //alert('getRequest1: '+requestId);
+            var req = '/'+requestId;
+            FB.api('', {"ids": requestId }, function(response) {
+              //if(response.length>0){
+                //console.log(response);
+                callback(response);
+              /*}
+              else{
+                callback('not_found');
+              }*/
+            });
+          }
+

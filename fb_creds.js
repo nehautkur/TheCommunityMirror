@@ -1,3 +1,3 @@
-fbId = "78346873242";           
-fbSecret = "7fwfef8sdf8uwef8wef7";
-fbCallbackAddress = 'http://www.nodrr.com/auth/facebook';
+fbId = "201147376628942";           
+fbSecret = "8320b2eb62c027edf3666d3326c7d95f";
+fbCallbackAddress = 'http://www.communitymirrortest.com/auth/facebook';

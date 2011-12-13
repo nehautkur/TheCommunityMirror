@@ -1,0 +1,70 @@
+html
+  head
+    link(rel='stylesheet',type='text/css',href='/css/404.css')
+    link(rel='stylesheet',type='text/css',href='/css/profile.css')
+    link(rel='stylesheet',type='text/css',href='/css/cm.css')
+  body
+    #centered
+      #Oobj132
+        img#Ggeo69(alt="", src="../images/404-Error-v1_02.png")
+      #Oobj50
+        a(href='/home')
+          img#Ggeo47(alt="", src="../images/Logo.png")
+      -if(account)
+        #Oobj59
+          #Grtf57.dfltt
+            a(href="/logout")
+              span.txt0 Logout
+      #Oobj55
+        #Grtf83.dfltt
+          span.txt1 404 Error. Page not found.
+      #Oobj62
+        #Grtf54.dfltt
+          span.txt2
+            | Maybe your friends know what Willis
+            | was talkin' bout. Ask them:
+      -if(account)
+        #Oobj99
+          #Gcode70.dfltc
+            form#contact_form(action='/nod', method='post')
+              .dfltf 
+                input#name.required(type='text', name='nod',style='color:#726E6D;font-size:20;font-family:Tahoma; background-color:Gainsboro;',size ='30',maxlength='80')
+                input#name1(type='hidden', name='reqIds',value='')
+                div
+                  input#send.button(type='button', value='Ask Specific Friends')
+                  input#post.button(type='button', value='Post on Wall')
+      -else
+        #Oobj99
+          a(href="/auth/facebook")
+            img#Ggeo22(alt="", src="../images/Connect with Facebook.png")
+    div
+      script(src='http://connect.facebook.net/en_US/all.js')
+      script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js')
+      script(src='/nowjs/now.js')
+      #fb-root
+      script 
+          $(document).ready(function(){
+              var fQuestion = !{JSON.stringify(account)};
+              now.receiveMessage = function(qid, message){
+              postToFeed(qid,$("#name").val());
+            }
+            $("#post").click(function(){
+              now.distributeMessage($("#name").val(),fQuestion);
+            });
+            $("#send").click(function(){
+              postToFriends($("#name").val());
+            });
+          });     
+          function postToFriends(qText) {
+            FB.init({appId: '172451406173427', xfbml: true, cookie: true});
+            FB.ui({
+                method: 'apprequests',
+                message: qText     
+                }, function(response){
+                  if(response.request){
+                    document.getElementById("name1").value = response.request;
+                    document.forms["contact_form"].submit();
+                  }
+              });
+            }
+      
